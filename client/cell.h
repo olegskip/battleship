@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CELL_H
+#define CELL_H
+
 #include <QPushButton>
 
 
@@ -22,3 +24,5 @@ public:
 private:
 	bool mIsCoord = false;
 };
+
+#endif // CELL_H

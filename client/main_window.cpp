@@ -1,8 +1,11 @@
 #include "main_window.h"
-#include <QDebug>
+
 MainWindow::MainWindow(QWidget *parent):
 	QWidget(parent)
 {
+	setObjectName("MainWindow");
+	setStyleSheet(QString("%1#%2{background-color: rgb(35, 35, 45);}").arg(metaObject()->className(), objectName()));
+
 	menuWindow = QPointer<MenuWindow>(new MenuWindow());
 	connect(menuWindow, &MenuWindow::reconnectRequested, [this](const QString &ip, int port)
 	{
@@ -20,22 +23,19 @@ MainWindow::MainWindow(QWidget *parent):
 	setLayout(boxLayout);
 	boxLayout->setMargin(0);
 
-	animatedShadow = QPointer<AnimatedShadow>(new AnimatedShadow(this, QColor(40, 40, 40), config::ANIMATED_SHADOW_DELAY, 1000, 0, 255));
+	animatedShadow = QPointer<AnimatedShadow>(new AnimatedShadow(this, config::ANIMATED_SHADOW_COLOR,
+																 config::ANIMATED_SHADOW_DELAY, 700));
 	connect(animatedShadow, &AnimatedShadow::finished, this, [this]()
 	{
 		menuWindow->deleteLater();
 		boxLayout->addWidget(gameWindow);
 		animatedShadow->raise();
-		QTimer::singleShot(1000, [this]()
-		{
-			popUpMessage->popUp("Слава Україні!", width());
-		});
 	});
 
-	connect(menuWindow, &MenuWindow::startGame,  [this]()
+	connect(menuWindow, &MenuWindow::startGame,  [this](QJsonArray shipsData)
 	{
+		client->sendCheckingBoard(shipsData);
 		animatedShadow->start(size());
-//		client->ping();
 	});
 
 	resize(500, 600);
@@ -47,12 +47,13 @@ MainWindow::MainWindow(QWidget *parent):
 	{
 		popUpMessage->popUp(config::SERVER_DISCONNECTED, width());
 	});
-	connect(client, &Client::connectionResult, [this](bool result)
+	connect(client, &Client::connectionResult, [this](bool connectResult)
 	{
-		if(result)
+		if(connectResult)
 			popUpMessage->popUp(config::SERVER_CONNECTION_SUCCESSFUL, width());
 		else
 			popUpMessage->popUp(config::SERVER_CONNECTION_FAILED, width());
 		popUpMessage->raise();
+		menuWindow->gotConnectResult(connectResult);
 	});
 }

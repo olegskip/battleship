@@ -11,9 +11,10 @@ PopUpMessage::PopUpMessage(QWidget *parent, unsigned height):
 				  "color: #2f302f;");
 
 
-	QFont fontCopy = font();
-	fontCopy.setPixelSize(20);
-	setFont(fontCopy);
+	QFont newFont = font();
+	newFont.setPixelSize(20);
+	newFont.setFamily("Roobert Heavy");
+	setFont(newFont);
 
 	setWordWrap(true);
 	setAlignment(Qt::AlignCenter);

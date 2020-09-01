@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SHIP_H
+#define SHIP_H
+
 #include <QApplication>
 #include <QPushButton>
 #include <QMouseEvent>
@@ -36,3 +38,5 @@ private:
 	bool mIsVertical;
 	bool isMoving = false; // only why true the user can rotate ship
 };
+
+#endif // SHIP_H

@@ -1,5 +1,7 @@
+#include "config.h"
 #include "board.h"
-#include <QDebug>
+
+
 Board::Board(QWidget *parent, unsigned int cellSideSize):
 	QWidget(parent)
 {
@@ -21,24 +23,7 @@ Board::Board(QWidget *parent, unsigned int cellSideSize):
 
 	for(auto &vec: cells) {
 		for(auto &cell: vec) {
-			if(cell->relPos.x() == 0 && cell->relPos.y() == 0)
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: transparent black black transparent;");
-			else if(cell->relPos.x() == 0 && cell->relPos.y() == cells.size() - 1)
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: black black transparent transparent;");
-			else if(cell->relPos.x() == cells.size() - 1 && cell->relPos.y() == cells.size() - 1)
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: black transparent transparent black;");
-			else if(cell->relPos.x() == cells.size() - 1 && cell->relPos.y() == 0)
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: transparent transparent black black;");
-			else if(cell->relPos.x() == 0)
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: black black black transparent;");
-			else if(cell->relPos.x() == cells.size() - 1)
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: black transparent black black;");
-			else if(cell->relPos.y() == 0)
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: transparent black black black;");
-			else if(cell->relPos.y() == cells.size() - 1)
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: black black transparent black;");
-			else
-				cell->setStyleSheet("border-width: 1px; border-style: solid; border-color: black black black black;");
+
 		}
 	}
 
@@ -70,6 +55,7 @@ Board::Board(QWidget *parent, unsigned int cellSideSize):
 		});
 	}
 	random();
+//	setLayout(mainVerticalLayout);
 }
 
 void Board::random()
@@ -119,6 +105,22 @@ void Board::random()
 			ship->move(0, 0);
 		}
 	}
+}
+
+QJsonArray Board::getShipsJsonData()
+{
+	QJsonArray jsonArray;
+
+	for(const auto &ship: ships) {
+		QJsonObject currentShipJsonObject;
+		currentShipJsonObject["ship_level"] = int(ship->shipLevel);
+		currentShipJsonObject["start_rel_pos"] = QJsonArray({ship->startRelPos().x(), ship->startRelPos().y()});
+		currentShipJsonObject["end_rel_pos"] = QJsonArray({ship->endRelPos().x(), ship->endRelPos().y()});
+
+		jsonArray.append(currentShipJsonObject);
+	}
+
+	return jsonArray;
 }
 
 const QPointer<Cell> Board::findTheNearestCell(QPoint absPos)

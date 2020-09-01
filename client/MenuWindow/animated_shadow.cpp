@@ -1,18 +1,16 @@
 #include "animated_shadow.h"
 
 
-AnimatedShadow::AnimatedShadow(QWidget *parent, QColor color, int delay, int animationDuration, int fromOpacity, int toOpacity):
-	QLabel(parent), startOpacity(fromOpacity), endOpacity(toOpacity)
+AnimatedShadow::AnimatedShadow(QWidget *parent, QColor color, int delay, int animationDuration):
+	QLabel(parent)
 {
 	assert(animationDuration > 0 && "Duration of the AnimatedShadow must be greater than 0");
-	assert(fromOpacity >= 0 && "Start opacity of the AnimatedShadow must be greater than or equal to 0");
-	assert(endOpacity <= 1000 && "End opacity of the AnimatedShadow must be greater than or equal to 1000");
 	animation = QPointer<QPropertyAnimation>(new QPropertyAnimation(this, "opacity"));
 	animation->setDuration(animationDuration);
 
 	mOpacity = startOpacity;
-	animation->setStartValue(startOpacity);
-	animation->setEndValue(endOpacity);
+	animation->setStartValue(0);
+	animation->setEndValue(255);
 
 	this->color = color;
 	setColor(color, mOpacity);

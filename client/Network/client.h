@@ -1,5 +1,9 @@
-#pragma once
+#ifndef CLIENT_H
+#define CLIENT_H
+
+#include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QTcpSocket>
 #include <QPointer>
 #include <QString>
@@ -17,6 +21,8 @@ public:
 	void connectToServer(const QString &ip, int port);
 	void reconnect();
 //	void checkConnection();
+
+	void sendCheckingBoard(QJsonArray shipsJsonData);
 
 signals:
 //	void checkConnectionResult(bool state);
@@ -36,3 +42,5 @@ private:
 //	QTimer checkConnectionTimer;
 //	bool didSendPing = false;
 };
+
+#endif // CLIENT_H

@@ -4,7 +4,7 @@ GameWindow::GameWindow(QWidget *parent):
 	QWidget(parent)
 {
 	setObjectName("GameWindow");
-	setStyleSheet(QString("QWidget#%0{background-color: #2f302f;}").arg(objectName()));
+	setStyleSheet(QString("%1#%2{background-color: transparent;}").arg(metaObject()->className(), objectName()));
 
 	startButton = QPointer<QPushButton>(new QPushButton(this));
 	startButton->setText("Start!");

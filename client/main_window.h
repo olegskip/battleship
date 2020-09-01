@@ -1,3 +1,6 @@
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
+
 #include <QHBoxLayout>
 #include <QWidget>
 
@@ -24,3 +27,4 @@ private:
 	QPointer<Client> client;
 };
 
+#endif // MAIN_WINDOW_H

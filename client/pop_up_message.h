@@ -1,4 +1,5 @@
-#pragma once
+#ifndef POP_UP_MESSAGE_H
+#define POP_UP_MESSAGE_H
 
 #include <QPropertyAnimation>
 #include <QLabel>
@@ -39,3 +40,4 @@ private:
 	std::queue<QString> messagesQueue;
 };
 
+#endif // POP_UP_MESSAGE_H

@@ -1,7 +1,6 @@
 #include "client.h"
 #include "config.h"
 
-#include <QDebug>
 #include <QtMath>
 
 Client::Client()
@@ -11,9 +10,12 @@ Client::Client()
 	connect(socket, &QTcpSocket::readyRead, this, &Client::receiveData);
 	connect(socket, &QTcpSocket::disconnected, [this]()
 	{
-		reconnect();
-		emit disconnected();
+		if(!didTryToConnect) {
+			reconnect();
+			emit disconnected();
+		}
 	});
+
 
 	connectionTimer.setInterval(500);
 	connect(&connectionTimer, &QTimer::timeout, [this]()
@@ -53,12 +55,16 @@ Client::Client()
 void Client::connectToServer(const QString &ip, int port)
 {
 	connectionTimer.stop();
-	socket->disconnectFromHost();
-	socket->connectToHost(ip, port);
-	lastIp = ip;
-	lastPort = port;
-	didTryToConnect = true;
-	connectionTimer.start();
+	if(lastIp == ip && lastPort == port && socket->state() == QTcpSocket::ConnectedState)
+		emit connectionResult(true);
+	else {
+		didTryToConnect = true;
+		socket->disconnectFromHost();
+		socket->connectToHost(ip, port);
+		lastIp = ip;
+		lastPort = port;
+		connectionTimer.start();
+	}
 }
 
 void Client::reconnect()
@@ -73,6 +79,14 @@ void Client::reconnect()
 
 //	checkConnectionTimer.start();
 //}
+
+void Client::sendCheckingBoard(QJsonArray shipsJsonData)
+{
+	QJsonObject jsonObject;
+	jsonObject["request"] = "check_ships";
+	jsonObject["ships"] = shipsJsonData;
+	socket->write(QJsonDocument(jsonObject).toJson(QJsonDocument::Compact));
+}
 
 void Client::receiveData()
 {

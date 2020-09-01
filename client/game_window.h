@@ -1,9 +1,9 @@
-#pragma once
+#ifndef GAME_WINDOW_H
+#define GAME_WINDOW_H
 
 #include <QPointer>
 #include <QWidget>
 #include <QVector>
-#include <QDebug>
 
 #include "Network/client.h"
 #include "config.h"
@@ -22,3 +22,5 @@ private:
 	QPointer<QPushButton> startButton;
 	bool isGameStarted = false;
 };
+
+#endif // GAME_WINDOW_H

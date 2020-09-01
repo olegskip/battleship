@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MENU_WINDOW_H
+#define MENU_WINDOW_H
+
 #include <QPushButton>
 #include <QLineEdit>
 #include <QPointer>
@@ -17,8 +19,10 @@ class MenuWindow: public QWidget
 public:
 	MenuWindow(QWidget *parent = nullptr);
 
+	void gotConnectResult(bool connectState);
+
 signals:
-	void startGame();
+	void startGame(QJsonArray shipsData);
 	void checkConnectionRequested();
 	void reconnectRequested(const QString &ip, int port);
 
@@ -30,9 +34,9 @@ private:
 	QPointer<QLineEdit> serverIPEdit;
 	QPointer<QLineEdit> serverPortEdit;
 	QPointer<QLineEdit> playerName;
-	QPointer<QPushButton> checkConnectionButton;
-	QString lastIp;
-	int lastPort;
+	QPointer<QPushButton> connectButton;
 //	QPointer<QLineEdit> serverNameEdit;
 //	QPointer<QLineEdit> serverPasswordEdit;
 };
+
+#endif // MENU_WINDOW_H

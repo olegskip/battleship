@@ -1,4 +1,6 @@
-#pragma once
+#ifndef ANIMATED_SHADOW_H
+#define ANIMATED_SHADOW_H
+
 #include <QPropertyAnimation>
 #include <QApplication>
 #include <QPointer>
@@ -13,7 +15,7 @@ class AnimatedShadow: public QLabel
 	Q_PROPERTY(int opacity READ opacity WRITE setOpacity)
 
 public:
-	AnimatedShadow(QWidget *parent, QColor color, int delay, int animationDuration, int fromOpacity, int toOpacity);
+	AnimatedShadow(QWidget *parent, QColor color, int delay, int animationDuration);
 
 	int opacity() const;
 	void setOpacity(int opacity);
@@ -35,3 +37,5 @@ private:
 	using QLabel::setStyleSheet;
 	using QLabel::setText;
 };
+
+#endif // ANIMATED_SHADOW_H
