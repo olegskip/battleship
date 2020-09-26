@@ -1,10 +1,10 @@
 #include "TCPConnection.h"
 
-
 TCPConnection::TCPConnection(boost::asio::ip::tcp::socket socket): 
-	mSocket(std::move(socket)), ID(boost::uuids::random_generator()())
+	ID(boost::uuids::random_generator()()), mSocket(std::move(socket))
 {
-	std::cout << "new connection" << std::endl;
+	std::cout << "new connection, id = " << ID << std::endl;
+
 
 	listen();
 }
@@ -14,9 +14,24 @@ void TCPConnection::createRoomRespond(StatusCode statusCode, std::string comment
 	nlohmann::json json;
 	json["request"] = "create_room";
 	json["code"] = static_cast<int>(statusCode);
-	json["comment"] = comment;
+	if(comment != "")
+		json["comment"] = comment;
 
-	send(json.dump());
+	send(json);
+}
+
+void TCPConnection::send(const std::string &dataToSend)
+{
+	mSocket.send(boost::asio::buffer(std::to_string(dataToSend.length()) + dataToSend));
+}
+
+void TCPConnection::send(const nlohmann::json &jsonData)
+{
+	if(jsonData["request"] == "")
+		throw std::invalid_argument("Json doesn't have request");
+
+	std::cout << "send " << jsonData.dump() << "\tto " << ID << std::endl;
+	send(jsonData.dump());
 }
 
 bool operator == (const TCPConnection &firstTCPConnection, const TCPConnection &secondTCPConnection)
@@ -26,7 +41,6 @@ bool operator == (const TCPConnection &firstTCPConnection, const TCPConnection &
 
 void TCPConnection::listen()
 {
-	// auto self(shared_from_this());
   	mSocket.async_read_some(boost::asio::buffer(dataBuffer), [this](boost::system::error_code errorCode, std::size_t /* length */) mutable
 	{
 		if(!errorCode) {
@@ -48,6 +62,8 @@ void TCPConnection::listen()
 				}
 			}
 		}
+		else 
+			disconnectSignal();
 		listen();
 	});
 }
@@ -59,6 +75,10 @@ void TCPConnection::dataController(std::string data)
 		const auto json = nlohmann::json::parse(data);
 		if(json["request"] == "create_room")
 			createRoomRequest(json["room_name"]);
+		else if(json["request"] == "join_room")
+			joinRoomRequest(json["room_name"]);
+		else if(json["request"] == "delete_room")
+			deleteRoomRequest(json["room_name"]);
 	}
 	catch(const std::exception&)
 	{
@@ -66,8 +86,9 @@ void TCPConnection::dataController(std::string data)
 	}
 }
 
-void TCPConnection::send(const std::string &dataToSend)
+TCPConnection::~TCPConnection()
 {
-	mSocket.send(boost::asio::buffer(std::to_string(dataToSend.length()) + dataToSend));
-	// mSocket.send("test")
+	boost::system::error_code errorCode;
+	mSocket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, errorCode);
+	mSocket.close();
 }

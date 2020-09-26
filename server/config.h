@@ -3,9 +3,7 @@
 
 namespace config
 {
-    const int PLAYER_NAME_MAX_LENGHT = 20;
-    const int ROOM_NAME_MAX_LENGHT = 20;
-
+	const int ROOM_NAME_MAX_LENGHT = 20;
 };
 
 

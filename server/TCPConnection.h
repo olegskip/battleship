@@ -21,31 +21,39 @@ enum class StatusCode
 	OK = 200,
 
 	BAD_REQUEST = 400,
-	FORBIDDEN = 403,
 	CONFLICT = 409
 };
 
-class TCPConnection: public std::enable_shared_from_this<TCPConnection>
+class TCPConnection
 {
 public:
-	TCPConnection(boost::asio::ip::tcp::socket socket);
+	explicit TCPConnection(boost::asio::ip::tcp::socket socket);
+	~TCPConnection();
+	boost::signals2::signal<void()> disconnectSignal;
 
 	boost::signals2::signal<void(std::string)> createRoomRequest;
 	void createRoomRespond(StatusCode statusCode, std::string comment = "");
 
+	boost::signals2::signal<void(std::string)> joinRoomRequest;
+	boost::signals2::signal<void(std::string)> deleteRoomRequest;
+
+	boost::signals2::signal<void(std::string)> updateRoomsInfo;
+
+	void send(const std::string &dataToSend);
+	void send(const nlohmann::json &jsonData);
+
 	friend bool operator == (const TCPConnection &firstTCPConnection, const TCPConnection &secondTCPConnection);
+
+	const boost::uuids::uuid ID;
 
 private:
 	void listen();
 	void dataController(std::string data);
-	void send(const std::string &dataToSend);
 
 	boost::asio::ip::tcp::socket mSocket;
 	
 	static const unsigned int MAX_LENGHT = 8000;
 	char dataBuffer[MAX_LENGHT];
-
-	const boost::uuids::uuid ID;
 };
 
 #endif // TCPCONNECTION_H
