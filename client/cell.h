@@ -13,7 +13,7 @@ enum class CellOwner
 class Cell: public QPushButton
 {
 public:
-	Cell(QWidget *widget, QPoint absPos, QPoint _relPos, unsigned int sideSize, CellOwner _cellOwner);
+	explicit Cell(QWidget *widget, QPoint absPos, QPoint _relPos, unsigned int sideSize, CellOwner _cellOwner);
 
 	const QPoint relPos;
 	const CellOwner cellOwner;

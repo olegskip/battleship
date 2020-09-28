@@ -6,24 +6,24 @@ GameWindow::GameWindow(QWidget *parent):
 	setObjectName("GameWindow");
 	setStyleSheet(QString("%1#%2{background-color: transparent;}").arg(metaObject()->className(), objectName()));
 
-	startButton = QPointer<QPushButton>(new QPushButton(this));
-	startButton->setText("Start!");
-	startButton->move(650, 200);
-	startButton->resize(100, 50);
-	connect(startButton, &QPushButton::clicked, this, [this]()
+	backButton = QPointer<QPushButton>(new QPushButton(this));
+	backButton->setText("Start!");
+	backButton->move(650, 200);
+	backButton->resize(100, 50);
+	connect(backButton, &QPushButton::clicked, this, [this]()
 	{
-		if(!isGameStarted) {
-			isGameStarted = true;
-			startButton->setEnabled(!isGameStarted);
-		}
+		emit backToMenuSignal();
 	});
+}
 
-	resize(800, 650);
-	setMaximumSize(size());
-	setMaximumSize(size());
+void GameWindow::show(QJsonArray shipsJsonData)
+{
+	board = QPointer<Board>(new Board(this));
+	board->move(10, 10);
+	board->resize(300, 300);
+	QWidget::show();
 }
 
 GameWindow::~GameWindow()
 {
-
 }

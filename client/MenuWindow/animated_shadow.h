@@ -15,7 +15,7 @@ class AnimatedShadow: public QLabel
 	Q_PROPERTY(int opacity READ opacity WRITE setOpacity)
 
 public:
-	AnimatedShadow(QWidget *parent, QColor color, int delay, int animationDuration);
+	explicit AnimatedShadow(QWidget *parent, QColor color, int delay, int animationDuration);
 
 	int opacity() const;
 	void setOpacity(int opacity);

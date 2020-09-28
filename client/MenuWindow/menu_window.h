@@ -2,6 +2,7 @@
 #define MENU_WINDOW_H
 
 #include <QPushButton>
+#include <QMessageBox>
 #include <QLineEdit>
 #include <QPointer>
 #include <QWidget>
@@ -9,7 +10,7 @@
 
 #include "animated_shadow.h"
 #include "board.h"
-//#include "clien
+#include "rooms_table.h"
 
 
 class MenuWindow: public QWidget
@@ -17,14 +18,25 @@ class MenuWindow: public QWidget
 	Q_OBJECT
 
 public:
-	MenuWindow(QWidget *parent = nullptr);
+	explicit MenuWindow(QWidget *parent = nullptr);
 
 	void gotConnectResult(bool connectState);
 
+	// set enabled state of objects that depends on server connection state
+	void setEnabledByConnection(bool isEnabled);
+	void enableCreateRoomButton();
+
+	void updateRooms(QJsonArray rooms);
+
+	QJsonArray shipsJsonData() const;
+
 signals:
-	void startGame(QJsonArray shipsData);
 	void checkConnectionRequested();
 	void reconnectRequested(const QString &ip, int port);
+	void createRoomRequested(QString roomName);
+	void joinRoomRequested(QString roomName);
+
+	void popUpRequested(QString text);
 
 private:
 	QPointer<QPushButton> startButton;
@@ -33,10 +45,12 @@ private:
 
 	QPointer<QLineEdit> serverIPEdit;
 	QPointer<QLineEdit> serverPortEdit;
-	QPointer<QLineEdit> playerName;
 	QPointer<QPushButton> connectButton;
-//	QPointer<QLineEdit> serverNameEdit;
-//	QPointer<QLineEdit> serverPasswordEdit;
+
+	QPointer<QPushButton> createRoomButton;
+	void createRoom();
+
+	QPointer<RoomsTable> roomsTable;
 };
 
 #endif // MENU_WINDOW_H

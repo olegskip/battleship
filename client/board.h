@@ -4,8 +4,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
+
+#include <QGridLayout>
 #include <QDateTime>
 #include <QVector>
 #include <QWidget>
@@ -17,27 +17,32 @@
 #include "ship.h"
 
 
+// --- Board ---
 class Board: public QWidget
 {
 	Q_OBJECT
 
 public:
-	Board(QWidget *parent, unsigned int cellSideSize);
+	explicit Board(QWidget *parent);
+	QJsonArray getShipsJsonData();
+
+	void adjustShips();
 
 	void random();
 
-	QJsonArray getShipsJsonData();
-
-	QVBoxLayout mainVerticalLayout;
-	QVector<QHBoxLayout> horizontalLayouts;
-
-private:
+protected:
 	QVector<QVector<QPointer<Cell>>> cells;
 	QVector<QPointer<Ship>> ships;
 
 	const QPointer<Cell> findTheNearestCell(QPoint absPos);
 	bool isCanPutShip(const Ship &movedShip, const Cell &cell);
 	QVector<QPoint> getAllRelPoints(QPoint from, QPoint to) const;
+
+private:
+	QPointer<QGridLayout> mainGridLayout;
+
+	void resizeEvent(QResizeEvent *) override;
+	void fromJsonData(QJsonArray ships);
 };
 
 #endif // BOARD_H

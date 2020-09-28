@@ -2,23 +2,21 @@
 #include "config.h"
 
 #include <QRegExpValidator>
+#include <QRegularExpression>
+#include <QInputDialog>
 
 MenuWindow::MenuWindow(QWidget *parent):
 	QWidget(parent)
 {
 	setObjectName("MenuWindow");
-	setStyleSheet(QString("%1#%2{background-color: transparent;}").arg(metaObject()->className(), objectName()));
+	setStyleSheet(QString("%1#%2{background-color: transparent; border: 10px solid green;}").arg(metaObject()->className(), objectName()));
 
 	startButton = QPointer<QPushButton>(new QPushButton(this));
 	startButton->move(300, 400);
 	startButton->setText("Start!");
-	startButton->setEnabled(false);
-	connect(startButton, &QPushButton::clicked, [this]()
-	{
-		startGame(selectionBoard->getShipsJsonData());
-	});
 
-	selectionBoard = QPointer<Board>(new Board(this, config::CELL_SIDE_SIZE));
+	selectionBoard = QPointer<Board>(new Board(this));
+
 	randomSelectionBoardButton = QPointer<QPushButton>(new QPushButton(this));
 	randomSelectionBoardButton->resize(config::CELL_SIDE_SIZE * 11, 25);
 	randomSelectionBoardButton->move(selectionBoard->x(), config::CELL_SIDE_SIZE * 11 + 10);
@@ -42,28 +40,78 @@ MenuWindow::MenuWindow(QWidget *parent):
 	serverPortEdit->setValidator(new QRegExpValidator(
 									 QRegExp("\\d{,5}")));
 
-	playerName = QPointer<QLineEdit>(new QLineEdit(this));
-	playerName->move(50, 460);
-	playerName->setPlaceholderText("Your nickname");
-	playerName->setToolTip("Only latins charasters, dot and underscore. Max lenght is 20. Must be unique");
-	playerName->setValidator(new QRegExpValidator(
-									 QRegExp("[a-z, A-Z, 0-9, _, .]{,20}")));
-
 	connectButton = QPointer<QPushButton>(new QPushButton(this));
-	connectButton->move(200, 430);
-	connectButton->setText("Check");
+	connectButton->move(200, 400);
+	connectButton->setText("Connect");
 	connect(connectButton, &QPushButton::clicked, [this]()
 	{
 		const QString ip = serverIPEdit->text().isEmpty() ? serverIPEdit->placeholderText() : serverIPEdit->text();
 		const int port = serverPortEdit->text().isEmpty() ? serverPortEdit->placeholderText().toInt() : serverPortEdit->text().toInt();
 		connectButton->setEnabled(false);
-		startButton->setEnabled(false);
+		setEnabledByConnection(false);
 		emit reconnectRequested(ip, port);
 	});
+
+	createRoomButton = QPointer<QPushButton>(new QPushButton(this));
+	createRoomButton->move(200, 430);
+	createRoomButton->setText("Create room");
+
+	connect(createRoomButton, &QPushButton::clicked, this, &MenuWindow::createRoom);
+
+	roomsTable = QPointer<RoomsTable>(new RoomsTable(this));
+	roomsTable->move(450, 300);
+	connect(roomsTable, &RoomsTable::joinRoomRequested, this, [this](QString roomName)
+	{
+		emit joinRoomRequested(roomName);
+	});
+
+	setEnabledByConnection(false);
+	// startGame(selectionBoard->getShipsJsonData());
 }
 
 void MenuWindow::gotConnectResult(bool connectState)
 {
 	connectButton->setEnabled(true);
 	startButton->setEnabled(connectState);
+	createRoomButton->setEnabled(connectState);
+}
+
+void MenuWindow::setEnabledByConnection(bool isEnabled)
+{
+	startButton->setEnabled(isEnabled);
+	createRoomButton->setEnabled(isEnabled);
+}
+
+void MenuWindow::enableCreateRoomButton()
+{
+	createRoomButton->setEnabled(true);
+}
+
+void MenuWindow::updateRooms(QJsonArray rooms)
+{
+	roomsTable->updateRooms(rooms);
+}
+
+QJsonArray MenuWindow::shipsJsonData() const
+{
+	return selectionBoard->getShipsJsonData();
+}
+
+void MenuWindow::createRoom()
+{
+	bool inputDialogResult;
+	const QString text = QInputDialog::getText(this, config::WINDOW_SHORT_NAME,
+											   "Room name. Only letters, digits, dot and underscore. Lenght must be [6, 20]",
+											   QLineEdit::Normal, "", &inputDialogResult);
+	const auto regExp = QRegularExpression("[a-z, A-Z, 0-9, _, .]{6,20}").match(text);
+
+	if(inputDialogResult) {
+		if(!text.isEmpty() && regExp.hasMatch() && regExp.capturedLength() == text.length()) {
+			createRoomButton->setEnabled(false);
+			emit createRoomRequested(text);
+		}
+
+		else
+			popUpRequested("Incorrect room name");
+	}
 }

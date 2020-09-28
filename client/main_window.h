@@ -14,17 +14,24 @@ class MainWindow: public QWidget
 	Q_OBJECT
 
 public:
-	MainWindow(QWidget *parent = nullptr);
+	explicit MainWindow(QWidget *parent = nullptr);
+
 
 private:
+	QPointer<QHBoxLayout> boxLayout;
 	QPointer<MenuWindow> menuWindow;
 	QPointer<GameWindow> gameWindow;
-	QPointer<QHBoxLayout> boxLayout;
 	QPointer<AnimatedShadow> animatedShadow;
 
 	QPointer<PopUpMessage> popUpMessage;
 
 	QPointer<Client> client;
+
+	void createRoom(QString roomName);
+	void joinRoom(QString roomName);
+	QString playerRoomName = "";
+
+	void startGame();
 };
 
 #endif // MAIN_WINDOW_H

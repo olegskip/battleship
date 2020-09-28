@@ -1,19 +1,25 @@
 #include "config.h"
 #include "board.h"
 
-
-Board::Board(QWidget *parent, unsigned int cellSideSize):
+// --- Board ---
+Board::Board(QWidget *parent):
 	QWidget(parent)
 {
 	qsrand(QDateTime::currentMSecsSinceEpoch() / 1000);
+	mainGridLayout = QPointer<QGridLayout>(new QGridLayout());
+	mainGridLayout->setSpacing(0);
+	setObjectName("test");
+	setStyleSheet(QString("%1#%2{border: 10px solid white;}").arg(metaObject()->className(), objectName()));
 
 	for(int x = 0; x < 11; ++x) {
 		cells.push_back(QVector<QPointer<Cell>>());
 		for(int y = 0; y < 11; ++y) {
-			cells.back().push_back(QPointer<Cell>(new Cell(this, QPoint(x, y) * int(cellSideSize),
-														  QPoint(x, y), cellSideSize, CellOwner::PLAYER)));
+			cells.back().push_back(QPointer<Cell>(new Cell(this, QPoint(x, y),
+														   QPoint(x, y), 1, CellOwner::PLAYER)));
+			mainGridLayout->addWidget(cells.back().back(), y, x);
 		}
 	}
+	setLayout(mainGridLayout);
 
 	cells[0][0]->setText("");
 	for(int x = 1; x < 11; ++x)
@@ -21,25 +27,19 @@ Board::Board(QWidget *parent, unsigned int cellSideSize):
 	for(int y = 1, n = 0; y < 11; ++y, ++n)
 		cells[0][y]->setText(QString::number(y));
 
-	for(auto &vec: cells) {
-		for(auto &cell: vec) {
-
-		}
-	}
-
 	// fill by ships
-	ships.push_back(QPointer<Ship>(new Ship(this, cells[1][1]->pos(), QPoint(1, 1), 30, 4, false)));
+	ships.push_back(QPointer<Ship>(new Ship(this, cells[1][1]->pos(), QPoint(1, 1), cells[1][1]->size(), 4, false)));
 	for(int i = 1; i < 5; i += 2) {
 		ships.push_back(QPointer<Ship>(new Ship(this, cells[i][3]->pos(), QPoint(i, 3),
-												30, 3, true)));
+												cells[i][3]->size(), 3, true)));
 	}
 	for(int i = 1; i < 7; i += 2) {
 		ships.push_back(QPointer<Ship>(new Ship(this, cells[i][7]->pos(), QPoint(i, 7),
-												30, 2, true)));
+												cells[i][7]->size(), 2, true)));
 	}
 	for(int i = 1; i < 9; i += 2) {
 		ships.push_back(QPointer<Ship>(new Ship(this, cells[i][10]->pos(), QPoint(i, 10),
-												30, 1, true)));
+												cells[i][10]->size(), 1, true)));
 	}
 	for(auto &ship: ships) {
 		connect(ship, &QPushButton::clicked, this, [this, &ship]()
@@ -47,15 +47,44 @@ Board::Board(QWidget *parent, unsigned int cellSideSize):
 			const auto &theNearestCell = findTheNearestCell(ship->pos());
 			if(!isCanPutShip(*ship, *theNearestCell)) {
 				ship->move(cells[ship->startRelPos().x()][ship->startRelPos().y()]->pos());
+				ship->resetVerticalState();
 			}
 			else {
 				ship->setRelPos(theNearestCell->relPos);
 				ship->move(theNearestCell->pos());
 			}
 		});
+
+		connect(ship, &Ship::adjustSizeRequsted, [this, ship]()
+		{
+			ship->adjustSize(cells[ship->startRelPos().x()][ship->startRelPos().y()]->size());
+		});
 	}
 	random();
-//	setLayout(mainVerticalLayout);
+}
+
+QJsonArray Board::getShipsJsonData()
+{
+	QJsonArray jsonArray;
+
+	for(const auto &ship: ships) {
+		QJsonObject currentShipJsonObject;
+		currentShipJsonObject["ship_level"] = int(ship->shipLevel);
+		currentShipJsonObject["start_rel_pos"] = QJsonArray({ship->startRelPos().x(), ship->startRelPos().y()});
+		currentShipJsonObject["end_rel_pos"] = QJsonArray({ship->endRelPos().x(), ship->endRelPos().y()});
+
+		jsonArray.append(currentShipJsonObject);
+	}
+
+	return jsonArray;
+}
+
+void Board::adjustShips()
+{
+	for(auto &ship: ships) {
+		ship->move(cells[ship->startRelPos().x()][ship->startRelPos().y()]->pos());
+		ship->adjustSize(cells[ship->startRelPos().x()][ship->startRelPos().y()]->size());
+	}
 }
 
 void Board::random()
@@ -96,31 +125,15 @@ void Board::random()
 
 		if(isCanPutNewShip) {
 			std::copy(newShipAllPoints.begin(), newShipAllPoints.end(), std::back_inserter(shipsAllPoints));
+			ship->setVertical(newShipIsVertical);
 			ship->setRelPos(newShipStartRelPos);
 			ship->move(cells[newShipStartRelPos.x()][newShipStartRelPos.y()]->pos());
-			ship->setVertical(newShipIsVertical);
 		}
 		else {
 			ship->setRelPos(QPoint(0, 0));
 			ship->move(0, 0);
 		}
 	}
-}
-
-QJsonArray Board::getShipsJsonData()
-{
-	QJsonArray jsonArray;
-
-	for(const auto &ship: ships) {
-		QJsonObject currentShipJsonObject;
-		currentShipJsonObject["ship_level"] = int(ship->shipLevel);
-		currentShipJsonObject["start_rel_pos"] = QJsonArray({ship->startRelPos().x(), ship->startRelPos().y()});
-		currentShipJsonObject["end_rel_pos"] = QJsonArray({ship->endRelPos().x(), ship->endRelPos().y()});
-
-		jsonArray.append(currentShipJsonObject);
-	}
-
-	return jsonArray;
 }
 
 const QPointer<Cell> Board::findTheNearestCell(QPoint absPos)
@@ -178,4 +191,9 @@ QVector<QPoint> Board::getAllRelPoints(QPoint from, QPoint to) const
 	}
 
 	return output;
+}
+
+void Board::resizeEvent(QResizeEvent *) // override
+{
+	adjustShips();
 }

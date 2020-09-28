@@ -37,28 +37,27 @@ PopUpMessage::PopUpMessage(QWidget *parent, unsigned height):
 			});
 		}
 		if(currentMessageType == MessageType::CLOSED && !messagesQueue.empty())
-			open(messagesQueue.front(), -1);
+			open(messagesQueue.front());
 	});
 }
 
-void PopUpMessage::popUp(const QString &messageText, unsigned int messageWidth)
+void PopUpMessage::popUp(const QString &messageText)
 {
 	if(messagesQueue.empty() || (!messagesQueue.empty() && messagesQueue.back() != messageText)) {
 		messagesQueue.push(messageText);
 		if(messagesQueue.size() == 1)
-			open(messageText, messageWidth);
+			open(messageText);
 	}
 }
 
-void PopUpMessage::open(const QString &messageText, unsigned int messageWidth)
+void PopUpMessage::open(const QString &messageText)
 {
 	if(currentMessageType == MessageType::CLOSED) {
 		animation->setStartValue(QPoint(0, -height()));
 		animation->setEndValue(QPoint(0, 0));
 		animation->start();
 		setText(messageText);
-		if(messageWidth != -1)
-			resize(messageWidth, height());
+		resize(parentWidget()->width(), height());
 		currentMessageType = MessageType::OPENINING;
 	}
 }

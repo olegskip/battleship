@@ -8,6 +8,7 @@
 #include "Network/client.h"
 #include "config.h"
 #include "cell.h"
+#include "board.h"
 
 
 class GameWindow: public QWidget
@@ -15,12 +16,20 @@ class GameWindow: public QWidget
 	Q_OBJECT
 
 public:
-	GameWindow(QWidget *parent = nullptr);
+	explicit GameWindow(QWidget *parent = nullptr);
 	~GameWindow();
 
+	void show(QJsonArray shipsJsonData);
+
+signals:
+	void backToMenuSignal();
+
 private:
-	QPointer<QPushButton> startButton;
-	bool isGameStarted = false;
+	using QWidget::show;
+
+	QPointer<Board> board;
+
+	QPointer<QPushButton> backButton;
 };
 
 #endif // GAME_WINDOW_H

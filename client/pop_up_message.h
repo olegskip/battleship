@@ -22,18 +22,18 @@ class PopUpMessage: public QLabel
 	Q_OBJECT
 
 public:
-	PopUpMessage(QWidget *parent, unsigned height);
+	explicit PopUpMessage(QWidget *parent, unsigned height);
 
 	const QString messageText;
 	const QSize messageSize;
 	const QPoint pos;
 
-	void popUp(const QString &messageText, unsigned int messageWidth);
+	void popUp(const QString &messageText);
 
 private:
 	QPointer<QPropertyAnimation> animation;
 
-	void open(const QString &messageText, unsigned int messageWidth);
+	void open(const QString &messageText);
 	void close();
 	MessageType currentMessageType = MessageType::CLOSED;
 
